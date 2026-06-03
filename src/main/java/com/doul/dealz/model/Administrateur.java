@@ -18,16 +18,11 @@ import java.time.LocalDate;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "administrateurs")
-@PrimaryKeyJoinColumn(name = "user_id")
 public class Administrateur extends User {
 
     private String niveau;
 
     private LocalDate dateCreation;
-
-
-    // ── Méthodes métier ───────────────────────────────────────────
 
     /** Suspend un utilisateur en désactivant son compte. */
     public void suspendreUser(User user) {
