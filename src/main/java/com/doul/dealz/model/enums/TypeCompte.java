@@ -1,4 +1,4 @@
-package com.doul.dealz.models.enums;
+package com.doul.dealz.model.enums;
 
 public enum TypeCompte {
     NORMAL,
