@@ -1,9 +1,13 @@
 package com.doul.dealz.controllers;
 
 import com.doul.dealz.model.dto.AuthRequest;
+import com.doul.dealz.model.dto.request.UserRequestDTO;
+import com.doul.dealz.model.dto.response.UserResponseDTO;
 import com.doul.dealz.services.AuthService;
+import com.doul.dealz.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +21,7 @@ import java.util.Map;
 @RequestMapping("auth")
 public class AuthController {
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthService.TokenPairResponse> login(@Valid @RequestBody AuthRequest authenticationRequest) {
@@ -35,6 +40,13 @@ public class AuthController {
         // return ResponseEntity.ok(authentificationService.refresh(refreshToken));
         String refreshToken = body.get("refreshToken");
         return ResponseEntity.ok(authService.refresh(refreshToken));
+    }
+
+
+    @PostMapping("/register")
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
+        UserResponseDTO createdUser = userService.createUser(userRequestDTO);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
 }
