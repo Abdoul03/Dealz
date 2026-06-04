@@ -15,6 +15,7 @@ import java.util.List;
  * Un utilisateur devient VENDEUR en publiant une annonce
  * et ACHETEUR en initiant une transaction. Ces rôles sont dynamiques.
  */
+
 @Entity
 @Setter
 @Getter
