@@ -46,16 +46,19 @@ public class Signalement {
     // ── ManyToOne : N Signalements → 1 User (qui signale) ─────────
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "signaleur_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"annoncesPubliees","transactionsEffectuees","messagesEnvoyes","messagesRecus","avisRecus","avisRediges","signalementsEmis","password"})
     private User signaleur;
 
     // ── ManyToOne : N Signalements → 1 Annonce (optionnel) ────────
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "annonce_ciblee_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"vendeur","transactions","signalements","urlImages"})
     private Annonce annonceCiblee;
 
     // ── ManyToOne : N Signalements → 1 User ciblé (optionnel) ─────
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_cible_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"annoncesPubliees","transactionsEffectuees","messagesEnvoyes","messagesRecus","avisRecus","avisRediges","signalementsEmis","password"})
     private User userCible;
 
     /** Signalement contre un utilisateur. */

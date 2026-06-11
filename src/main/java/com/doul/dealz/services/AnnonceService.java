@@ -44,6 +44,7 @@ public class AnnonceService {
         annonce.setPointRetrait(dto.pointRetrait());
         annonce.setVendeur(vendeur);
         annonce.setCategorie(categorie);
+        annonce.publier(); // publication immédiate à la création
 
         return toResponse(annonceRepository.save(annonce));
     }

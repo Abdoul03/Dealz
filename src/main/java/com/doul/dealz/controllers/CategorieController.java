@@ -2,6 +2,7 @@ package com.doul.dealz.controllers;
 
 import com.doul.dealz.model.Categorie;
 import com.doul.dealz.model.dto.request.CategorieRequestDTO;
+import com.doul.dealz.model.dto.response.CategorieResponseDTO;
 import com.doul.dealz.services.CategorieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,25 +20,33 @@ public class CategorieController {
     private final CategorieService categorieService;
 
     @GetMapping
-    public ResponseEntity<List<Categorie>> getAll() {
-        return ResponseEntity.ok(categorieService.getAllCategorie());
+    public ResponseEntity<List<CategorieResponseDTO>> getAll() {
+        return ResponseEntity.ok(
+                categorieService.getAllCategorie().stream()
+                        .map(c -> new CategorieResponseDTO(c.getId(), c.getNom()))
+                        .toList()
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Categorie> getOne(@PathVariable String id) {
-        return ResponseEntity.ok(categorieService.getAnCategorie(id));
+    public ResponseEntity<CategorieResponseDTO> getOne(@PathVariable String id) {
+        Categorie c = categorieService.getAnCategorie(id);
+        return ResponseEntity.ok(new CategorieResponseDTO(c.getId(), c.getNom()));
     }
 
     @PostMapping
-    public ResponseEntity<Categorie> create(@Valid @RequestBody CategorieRequestDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(categorieService.createCategorie(dto));
+    public ResponseEntity<CategorieResponseDTO> create(@Valid @RequestBody CategorieRequestDTO dto) {
+        Categorie c = categorieService.createCategorie(dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new CategorieResponseDTO(c.getId(), c.getNom()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Categorie> update(
+    public ResponseEntity<CategorieResponseDTO> update(
             @PathVariable String id,
             @Valid @RequestBody CategorieRequestDTO dto) {
-        return ResponseEntity.ok(categorieService.updateCategorie(id, dto));
+        Categorie c = categorieService.updateCategorie(id, dto);
+        return ResponseEntity.ok(new CategorieResponseDTO(c.getId(), c.getNom()));
     }
 
     @DeleteMapping("/{id}")
