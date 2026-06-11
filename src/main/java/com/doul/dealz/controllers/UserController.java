@@ -38,6 +38,13 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> getMe(
+            org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(
+                userService.getAnUser(authentication.getPrincipal().toString()));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.supprimeUser(id);
