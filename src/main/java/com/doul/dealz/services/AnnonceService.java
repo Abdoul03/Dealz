@@ -15,6 +15,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +38,14 @@ public class AnnonceService {
 
         Annonce annonce = new Annonce();
         annonce.setTitre(dto.titre());
+        annonce.setMarque(dto.marque());
+        annonce.setTaille(dto.taille());
         annonce.setDescription(dto.description());
         annonce.setPrix(dto.prix());
         annonce.setUrlImage(dto.urlImage());
         annonce.setUrlImages(dto.urlImages() != null ? dto.urlImages() : new ArrayList<>());
         annonce.setEtat(dto.etat());
-        annonce.setPointRetrait(dto.pointRetrait());
+        annonce.setQuartier(dto.quartier());
         annonce.setVendeur(vendeur);
         annonce.setCategorie(categorie);
         annonce.publier(); // publication immédiate à la création
@@ -55,21 +59,38 @@ public class AnnonceService {
         if (annonce.getStatut() == StatutAnnonce.VENDUE) {
             throw new IllegalArgumentException("Une annonce vendue ne peut pas être republiée.");
         }
+        if (annonce.getStatut() == StatutAnnonce.RESERVEE) {
+            throw new IllegalArgumentException("Cette annonce est réservée.");
+        }
         annonce.publier();
         return toResponse(annonceRepository.save(annonce));
     }
 
     @Transactional(readOnly = true)
-    public List<AnnonceResponseDTO> getAnnonces(String categorieId, String motCle) {
-        List<Annonce> annonces;
-        if (motCle != null && !motCle.isBlank()) {
-            annonces = annonceRepository.searchByMotCle(StatutAnnonce.PUBLIEE, motCle);
-        } else if (categorieId != null && !categorieId.isBlank()) {
-            annonces = annonceRepository.findByStatutAndCategorieIdOrderByDatePublicationDesc(
-                    StatutAnnonce.PUBLIEE, categorieId);
-        } else {
-            annonces = annonceRepository.findByStatutOrderByDatePublicationDesc(StatutAnnonce.PUBLIEE);
+    public List<AnnonceResponseDTO> getAnnonces(
+            String categorieId,
+            String motCle,
+            String taille,
+            Float prixMin,
+            Float prixMax,
+            int page,
+            int size) {
+        if (prixMin != null && prixMax != null && prixMin > prixMax) {
+            throw new IllegalArgumentException("Le prix minimum dépasse le prix maximum.");
         }
+
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 40));
+        String categorie = categorieId == null || categorieId.isBlank() ? null : categorieId;
+        String recherche = motCle == null || motCle.isBlank() ? null : motCle.trim();
+        String tailleFiltre = taille == null || taille.isBlank() ? null : taille.trim();
+        List<Annonce> annonces = annonceRepository.findAvailableWithFilters(
+                StatutAnnonce.PUBLIEE,
+                categorie,
+                recherche,
+                tailleFiltre,
+                prixMin,
+                prixMax,
+                pageable).getContent();
         return annonces.stream().map(this::toResponse).toList();
     }
 
@@ -89,19 +110,21 @@ public class AnnonceService {
     public AnnonceResponseDTO updateAnnonce(String id, AnnonceRequestDTO dto, String vendeurId) {
         Annonce annonce = annonceRepository.findByIdAndVendeurId(id, vendeurId)
                 .orElseThrow(() -> new EntityNotFoundException("Annonce introuvable ou non autorisée."));
-        if (annonce.getStatut() == StatutAnnonce.VENDUE) {
-            throw new IllegalArgumentException("Une annonce vendue ne peut pas être modifiée.");
+        if (annonce.getStatut() == StatutAnnonce.VENDUE || annonce.getStatut() == StatutAnnonce.RESERVEE) {
+            throw new IllegalArgumentException("Une annonce vendue ou réservée ne peut pas être modifiée.");
         }
         Categorie categorie = categorieRepository.findById(dto.categorieId())
                 .orElseThrow(() -> new EntityNotFoundException("Catégorie introuvable."));
 
         annonce.setTitre(dto.titre());
+        annonce.setMarque(dto.marque());
+        annonce.setTaille(dto.taille());
         annonce.setDescription(dto.description());
         annonce.setPrix(dto.prix());
         annonce.setUrlImage(dto.urlImage());
         if (dto.urlImages() != null) annonce.setUrlImages(dto.urlImages());
         annonce.setEtat(dto.etat());
-        annonce.setPointRetrait(dto.pointRetrait());
+        annonce.setQuartier(dto.quartier());
         annonce.setCategorie(categorie);
 
         return toResponse(annonceRepository.save(annonce));
@@ -110,8 +133,8 @@ public class AnnonceService {
     public AnnonceResponseDTO archiverAnnonce(String id, String vendeurId) {
         Annonce annonce = annonceRepository.findByIdAndVendeurId(id, vendeurId)
                 .orElseThrow(() -> new EntityNotFoundException("Annonce introuvable ou non autorisée."));
-        if (annonce.getStatut() == StatutAnnonce.VENDUE) {
-            throw new IllegalArgumentException("Une annonce vendue ne peut pas être archivée.");
+        if (annonce.getStatut() == StatutAnnonce.VENDUE || annonce.getStatut() == StatutAnnonce.RESERVEE) {
+            throw new IllegalArgumentException("Une annonce vendue ou réservée ne peut pas être archivée.");
         }
         annonce.archiver();
         return toResponse(annonceRepository.save(annonce));
@@ -123,8 +146,8 @@ public class AnnonceService {
         if (annonce.getStatut() == StatutAnnonce.PUBLIEE) {
             throw new IllegalArgumentException("Archivez l'annonce avant de la supprimer.");
         }
-        if (annonce.getStatut() == StatutAnnonce.VENDUE) {
-            throw new IllegalArgumentException("Une annonce vendue ne peut pas être supprimée.");
+        if (annonce.getStatut() == StatutAnnonce.VENDUE || annonce.getStatut() == StatutAnnonce.RESERVEE) {
+            throw new IllegalArgumentException("Une annonce vendue ou réservée ne peut pas être supprimée.");
         }
         annonceRepository.delete(annonce);
     }
@@ -140,9 +163,9 @@ public class AnnonceService {
         User v = a.getVendeur();
         Categorie c = a.getCategorie();
         return new AnnonceResponseDTO(
-                a.getId(), a.getTitre(), a.getDescription(), a.getPrix(),
+                a.getId(), a.getTitre(), a.getMarque(), a.getTaille(), a.getDescription(), a.getPrix(),
                 a.getUrlImage(), a.getUrlImages(), a.getEtat(), a.getStatut(),
-                a.getDatePublication(), a.isBoosted(), a.getPointRetrait(),
+                a.getDatePublication(), a.isBoosted(), a.getQuartier(),
                 new UserSummaryDTO(v.getId(), v.getNom(), v.getPrenom(), v.getNoteMoyenne()),
                 new CategorieResponseDTO(c.getId(), c.getNom())
         );

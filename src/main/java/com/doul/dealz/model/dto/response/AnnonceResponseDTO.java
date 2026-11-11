@@ -9,6 +9,8 @@ import java.util.List;
 public record AnnonceResponseDTO(
         String id,
         String titre,
+        String marque,
+        String taille,
         String description,
         float prix,
         String urlImage,
@@ -17,7 +19,7 @@ public record AnnonceResponseDTO(
         StatutAnnonce statut,
         LocalDateTime datePublication,
         boolean isBoosted,
-        String pointRetrait,
+        String quartier,
         UserSummaryDTO vendeur,
         CategorieResponseDTO categorie
 ) {}

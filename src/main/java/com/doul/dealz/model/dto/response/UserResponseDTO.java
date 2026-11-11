@@ -8,7 +8,6 @@ public record UserResponseDTO(
         String prenom,
         String telephone,
         String email,
-        String password,
         TypeCompte typeCompte,
         boolean isPremiun,
         boolean isActive,

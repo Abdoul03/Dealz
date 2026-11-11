@@ -1,7 +1,6 @@
 package com.doul.dealz.model.dto.response;
 
 import com.doul.dealz.model.enums.StatutTransaction;
-import com.doul.dealz.model.enums.TypePaiement;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +14,6 @@ public record TransactionResponseDTO(
         String annonceTitre,
         UserSummaryDTO acheteur,
         UserSummaryDTO vendeur,
-        TypePaiement typePaiement,
-        boolean paiementLibere
+        boolean acheteurConfirmeRemise,
+        boolean vendeurConfirmeRemise
 ) {}

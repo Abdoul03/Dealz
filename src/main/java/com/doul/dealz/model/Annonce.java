@@ -37,6 +37,10 @@ public class Annonce {
     @Column(nullable = false)
     private String titre;
 
+    private String marque;
+
+    private String taille;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -64,8 +68,9 @@ public class Annonce {
 
     private boolean isBoosted = false;
 
-    /** Point de retrait proposé par le vendeur (ex: "Marché de Médine, Bamako"). */
-    private String pointRetrait;
+    /** Quartier de l'annonce; le point de rencontre précis est convenu en privé. */
+    @Column(name = "point_retrait")
+    private String quartier;
 
     // ── ManyToOne : N Annonces → 1 User (vendeur) ─────────────────
     @ManyToOne(fetch = FetchType.LAZY)
@@ -101,5 +106,9 @@ public class Annonce {
     /** Marque l'annonce comme vendue après confirmation de transaction. */
     public void marquerVendue() {
         this.statut = StatutAnnonce.VENDUE;
+    }
+
+    public void marquerReservee() {
+        this.statut = StatutAnnonce.RESERVEE;
     }
 }

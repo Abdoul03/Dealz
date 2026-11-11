@@ -42,7 +42,7 @@ public class AdminInitializer implements ApplicationRunner {
         adminService.createAdmin(
                 new AdminRequestDTO(nom, prenom, email, telephone, password, "SUPER")
         );
-        log.info("✓ Admin par défaut créé → email: {} | mot de passe: {}", email, password);
+        log.info("✓ Admin par défaut créé → email: {}", email);
         log.warn("→ Pensez à changer le mot de passe admin en production !");
     }
 }

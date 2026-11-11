@@ -30,8 +30,14 @@ public class AnnonceController {
     @GetMapping
     public ResponseEntity<List<AnnonceResponseDTO>> getAll(
             @RequestParam(required = false) String categorieId,
-            @RequestParam(required = false) String motCle) {
-        return ResponseEntity.ok(annonceService.getAnnonces(categorieId, motCle));
+            @RequestParam(required = false) String motCle,
+            @RequestParam(required = false) String taille,
+            @RequestParam(required = false) Float prixMin,
+            @RequestParam(required = false) Float prixMax,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(annonceService.getAnnonces(
+                categorieId, motCle, taille, prixMin, prixMax, page, size));
     }
 
     @GetMapping("/mes-annonces")

@@ -44,6 +44,12 @@ public class Transaction {
     /** Mode de remise : "DOMICILE", "POINT_RELAIS", "MAIN_PROPRE" */
     private String modeRetrait;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean acheteurConfirmeRemise = false;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean vendeurConfirmeRemise = false;
+
     // ── ManyToOne : N Transactions → 1 User (acheteur) ───────────
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "acheteur_id", nullable = false)
@@ -55,7 +61,7 @@ public class Transaction {
     private Annonce annonce;
 
     // ── OneToOne : 1 Transaction → 1 Paiement ────────────────────
-    @OneToOne(mappedBy = "transaction", cascade = CascadeType.ALL, optional = false)
+    @OneToOne(mappedBy = "transaction", cascade = CascadeType.ALL)
     private Paiement paiement;
 
     // ── OneToMany : 1 Transaction → max 2 Avis ───────────────────
@@ -64,23 +70,30 @@ public class Transaction {
 
     // ── Méthodes métier ───────────────────────────────────────────
 
-    /**
-     * Confirme la transaction après réception de l'article par l'acheteur.
-     * Libère le paiement au vendeur et marque l'annonce comme vendue.
-     */
-    public void confirmer() {
-        this.statut = StatutTransaction.CONFIRMEE;
-        this.annonce.marquerVendue();
+    public void confirmerRemise(String userId) {
+        if (statut == StatutTransaction.CONFIRMEE || statut == StatutTransaction.ANNULEE) {
+            throw new IllegalArgumentException("Cette réservation n'est plus active.");
+        }
+
+        if (acheteur.getId().equals(userId)) {
+            acheteurConfirmeRemise = true;
+        } else if (annonce.getVendeur().getId().equals(userId)) {
+            vendeurConfirmeRemise = true;
+        } else {
+            throw new SecurityException("Vous ne participez pas à cette réservation.");
+        }
+
+        if (acheteurConfirmeRemise && vendeurConfirmeRemise) {
+            statut = StatutTransaction.CONFIRMEE;
+            annonce.marquerVendue();
+        } else {
+            statut = StatutTransaction.CONFIRMATION_PARTIELLE;
+        }
     }
 
-    /** Annule la transaction et déclenche un remboursement. */
+    /** Annule la réservation entre les utilisateurs. */
     public void annuler() {
         this.statut = StatutTransaction.ANNULEE;
-    }
-
-    /** Place les fonds en séquestre en attente de confirmation. */
-    public void mettreEnSequestre() {
-        this.statut = StatutTransaction.SEQUESTRE;
     }
 
 }
