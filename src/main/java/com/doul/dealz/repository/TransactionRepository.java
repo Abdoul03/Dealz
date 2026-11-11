@@ -3,6 +3,7 @@ package com.doul.dealz.repository;
 import com.doul.dealz.model.Transaction;
 import com.doul.dealz.model.enums.StatutTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -16,4 +17,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
     List<Transaction> findByVendeurId(@Param("vendeurId") String vendeurId);
 
     boolean existsByAnnonceIdAndStatutIn(String annonceId, List<StatutTransaction> statuts);
+
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE Transaction t SET t.statut = :nouveauStatut " +
+            "WHERE t.id = :transactionId AND t.statut <> :statutInterdit")
+    int changerStatutSiNonConfirmee(
+            @Param("transactionId") String transactionId,
+            @Param("statutInterdit") StatutTransaction statutInterdit,
+            @Param("nouveauStatut") StatutTransaction nouveauStatut);
 }

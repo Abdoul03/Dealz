@@ -82,11 +82,24 @@ public class TransactionService {
             throw new IllegalArgumentException("Une transaction confirmée ne peut pas être annulée.");
         }
 
-        transaction.annuler();
-        if (transaction.getAnnonce().getStatut() == StatutAnnonce.RESERVEE) {
-            transaction.getAnnonce().publier();
+        Annonce annonce = transaction.getAnnonce();
+        if (transaction.getStatut() != StatutTransaction.ANNULEE) {
+            int transactionsAnnulees = transactionRepository.changerStatutSiNonConfirmee(
+                    transaction.getId(), StatutTransaction.CONFIRMEE, StatutTransaction.ANNULEE);
+            if (transactionsAnnulees == 0) {
+                throw new IllegalStateException("La réservation a changé d'état. Actualisez puis réessayez.");
+            }
+            transaction.annuler();
         }
-        transactionRepository.save(transaction);
+        if (annonce.getStatut() == StatutAnnonce.RESERVEE) {
+            annonce.publier();
+            int annoncesRemisesEnLigne = annonceRepository.changerStatutSiActuel(
+                    annonce.getId(), StatutAnnonce.RESERVEE, StatutAnnonce.PUBLIEE,
+                    annonce.getDatePublication());
+            if (annoncesRemisesEnLigne == 0) {
+                throw new IllegalStateException("L'article n'est plus réservé et n'a pas pu être remis en ligne.");
+            }
+        }
 
         return toResponse(transaction);
     }
@@ -110,6 +123,7 @@ public class TransactionService {
         return new TransactionResponseDTO(
                 t.getId(), t.getMontant(), t.getStatut(), t.getDateTransaction(),
                 t.getModeRetrait(), annonce.getId(), annonce.getTitre(),
+                annonce.getUrlImage(),
                 new UserSummaryDTO(acheteur.getId(), acheteur.getNom(), acheteur.getPrenom(), acheteur.getNoteMoyenne()),
                 new UserSummaryDTO(vendeur.getId(), vendeur.getNom(), vendeur.getPrenom(), vendeur.getNoteMoyenne()),
                 t.isAcheteurConfirmeRemise(),

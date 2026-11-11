@@ -6,6 +6,7 @@ public record ConversationResumeDTO(
         UserSummaryDTO interlocuteur,
         String annonceId,
         String annonceTitre,
+        String annonceImageUrl,
         String dernierMessage,
         LocalDateTime dateEnvoi,
         boolean hasUnread

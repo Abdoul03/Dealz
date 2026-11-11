@@ -36,7 +36,7 @@ public class Transaction {
     private float montant;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 30)
     private StatutTransaction statut = StatutTransaction.EN_COURS;
 
     private LocalDateTime dateTransaction;

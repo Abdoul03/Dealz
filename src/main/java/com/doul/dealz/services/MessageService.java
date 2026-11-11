@@ -77,6 +77,7 @@ public class MessageService {
                     new UserSummaryDTO(autre.getId(), autre.getNom(), autre.getPrenom(), autre.getNoteMoyenne()),
                     m.getAnnonce().getId(),
                     m.getAnnonce().getTitre(),
+                    m.getAnnonce().getUrlImage(),
                     m.getContenu(),
                     m.getDateEnvoi(),
                     hasUnread

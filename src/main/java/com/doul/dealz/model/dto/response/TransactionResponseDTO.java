@@ -12,6 +12,7 @@ public record TransactionResponseDTO(
         String modeRetrait,
         String annonceId,
         String annonceTitre,
+        String annonceImageUrl,
         UserSummaryDTO acheteur,
         UserSummaryDTO vendeur,
         boolean acheteurConfirmeRemise,

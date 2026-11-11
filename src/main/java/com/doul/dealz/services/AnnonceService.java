@@ -10,6 +10,7 @@ import com.doul.dealz.model.dto.response.UserSummaryDTO;
 import com.doul.dealz.model.enums.StatutAnnonce;
 import com.doul.dealz.repository.AnnonceRepository;
 import com.doul.dealz.repository.CategorieRepository;
+import com.doul.dealz.repository.FavoriRepository;
 import com.doul.dealz.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class AnnonceService {
     private final AnnonceRepository annonceRepository;
     private final UserRepository userRepository;
     private final CategorieRepository categorieRepository;
+    private final FavoriRepository favoriRepository;
 
     public AnnonceResponseDTO createAnnonce(AnnonceRequestDTO dto, String vendeurId) {
         User vendeur = userRepository.findById(vendeurId)
@@ -149,6 +151,7 @@ public class AnnonceService {
         if (annonce.getStatut() == StatutAnnonce.VENDUE || annonce.getStatut() == StatutAnnonce.RESERVEE) {
             throw new IllegalArgumentException("Une annonce vendue ou réservée ne peut pas être supprimée.");
         }
+        favoriRepository.deleteByAnnonceId(id);
         annonceRepository.delete(annonce);
     }
 

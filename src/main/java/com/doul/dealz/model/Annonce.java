@@ -61,7 +61,7 @@ public class Annonce {
     private EtatArticle etat;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 30)
     private StatutAnnonce statut = StatutAnnonce.EN_ATTENTE;
 
     private LocalDateTime datePublication;

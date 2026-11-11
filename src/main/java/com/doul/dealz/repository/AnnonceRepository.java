@@ -12,6 +12,7 @@ import org.springframework.data.domain.Slice;
 import java.util.List;
 import java.util.Optional;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Modifying;
 
 public interface AnnonceRepository extends JpaRepository<Annonce, String> {
 
@@ -22,6 +23,15 @@ public interface AnnonceRepository extends JpaRepository<Annonce, String> {
     List<Annonce> findByVendeurIdOrderByDatePublicationDesc(String vendeurId);
 
     Optional<Annonce> findByIdAndVendeurId(String id, String vendeurId);
+
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE Annonce a SET a.statut = :nouveauStatut, a.datePublication = :datePublication " +
+            "WHERE a.id = :annonceId AND a.statut = :statutActuel")
+    int changerStatutSiActuel(
+            @Param("annonceId") String annonceId,
+            @Param("statutActuel") StatutAnnonce statutActuel,
+            @Param("nouveauStatut") StatutAnnonce nouveauStatut,
+            @Param("datePublication") java.time.LocalDateTime datePublication);
 
     List<Annonce> findByStatutAndVendeurIdOrderByDatePublicationDesc(StatutAnnonce statut, String vendeurId);
 
